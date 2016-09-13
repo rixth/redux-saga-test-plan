@@ -32,6 +32,8 @@ const identity = value => value;
 const ARGUMENT = 'ARGUMENT';
 const ERROR = 'ERROR';
 const NONE = 'NONE';
+const FINISH = 'FINISH';
+const FINISH_ARGUMENT = 'FINISH_ARGUMENT';
 
 class SagaTestError extends Error {
   constructor(message) {
@@ -145,7 +147,7 @@ export default function testSaga(
   saga: Function,
   ...sagaArgs: Array<any>
 ): Api {
-  const api = { next, back, restart, mark, throw: throwError };
+  const api = { next, back, finish, restart, mark, throw: throwError };
 
   let previousArgs: Array<Arg> = [];
   let marks: Object<String, Number> = {};
@@ -262,6 +264,21 @@ export default function testSaga(
     return apiWithEffectsTesters(result);
   }
 
+  function finish(...args: Array<any>): ApiWithEffectsTesters {
+    const arg = args[0];
+    let result;
+
+    if (args.length === 0) {
+      previousArgs.push({ type: FINISH });
+      result = iterator.return();
+    } else {
+      previousArgs.push({ type: FINISH_ARGUMENT, value: arg });
+      result = iterator.return(arg);
+    }
+
+    return apiWithEffectsTesters(result);
+  }
+
   function back(n: string | number = 1): Api {
     let m = n;
 
@@ -290,6 +307,10 @@ export default function testSaga(
         iterator.next();
       } else if (arg.type === ERROR) {
         iterator.throw(arg.value);
+      } else if (arg.type === FINISH) {
+        iterator.return();
+      } else if (arg.type === FINISH_ARGUMENT) {
+        iterator.return(arg.value);
       } else {
         iterator.next(arg.value);
       }
