@@ -34,7 +34,7 @@ export type ApiWithEffectsTesters = {
 };
 
 export type Next = (...args: Array<any>) => ApiWithEffectsTesters;
-export type Back = (n: number | void) => Api;
+export type Back = (n: number | void | string) => Api;
 export type Restart = () => Api;
 export type ThrowError = (error: Error) => ApiWithEffectsTesters;
 

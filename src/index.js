@@ -145,9 +145,10 @@ export default function testSaga(
   saga: Function,
   ...sagaArgs: Array<any>
 ): Api {
-  const api = { next, back, restart, throw: throwError };
+  const api = { next, back, restart, mark, throw: throwError };
 
   let previousArgs: Array<Arg> = [];
+  let marks: Object<String, Number> = {};
   let iterator = createIterator();
 
   function createEffectTester(
@@ -232,6 +233,7 @@ export default function testSaga(
 
   function restart(): Api {
     previousArgs = [];
+    marks = {};
     iterator = createIterator();
 
     return api;
@@ -260,12 +262,20 @@ export default function testSaga(
     return apiWithEffectsTesters(result);
   }
 
-  function back(n: number = 1): Api {
+  function back(n: string | number = 1): Api {
+    let m = n;
+
+    if (typeof n === 'string') {
+      if (!marks[n]) {
+        throw new Error(`No such mark ${n}`);
+      }
+      m = previousArgs.length - marks[n];
+      delete marks[n];
+    }
+
     if (n > previousArgs.length) {
       throw new Error('Cannot go back any further');
     }
-
-    let m = n;
 
     while (m--) {
       previousArgs.pop();
@@ -285,6 +295,11 @@ export default function testSaga(
       }
     }
 
+    return api;
+  }
+
+  function mark(name: string): Api {
+    marks[name] = previousArgs.length;
     return api;
   }
 
