@@ -1,5 +1,5 @@
 {
-  "name": "redux-saga-test-plan",
+  "name": "@classpass/redux-saga-test-plan",
   "version": "0.2.0",
   "description": "Test helpers for redux-saga",
   "main": "lib/index.js",
